@@ -75,9 +75,9 @@ namespace SonarrAutoImport
             var allFiles = baseDir.GetFiles("*.*", SearchOption.AllDirectories).ToList();
             var movieFiles = allFiles.Where(x => movieExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase)).ToList();
 
-            if( movieFiles.Any() )
+            if (movieFiles.Any())
             {
-                foreach( var file in movieFiles)
+                foreach (var file in movieFiles)
                 {
                     string path = TranslatePath(folderToScan, file.FullName, mapfolder);
 
@@ -87,6 +87,8 @@ namespace SonarrAutoImport
                         Console.WriteLine(" => {0}", path);
                 }
             }
+            else
+                Console.WriteLine("No videos found. Nothing to do!");
         }
 
         private static string TranslatePath(string baseFolder, string fullName, string mapFolder)
