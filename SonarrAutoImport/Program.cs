@@ -9,10 +9,7 @@ namespace SonarrAutoImport
 {
     class Program
     {
-        //private static string apiKey = "8727e07296064e369ccb05d3c11b9531";
-        //private static string baseUrl = "http://192.168.1.30:8989";
-        //private static string importDir = "/Users/markotway/Desktop/TV Shows";
-        private static string[] movieExtensions = new string[] { 
+        private static string[] movieExtensions = { 
                 ".mkv", ".avi", ".wmv", ".mov", ".amv",
                 ".mp4", ".m4a", ".m4v", ".f4v", ".f4a", ".m4b", ".m4r", ".f4b",
                 ".mpg", ".mp2", ".mpeg", ".mpe", ".mpv"
