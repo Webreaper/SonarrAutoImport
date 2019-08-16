@@ -22,3 +22,40 @@ There are also some optional params:
 ```SonarrAutoImport "/volume1/video/Downloads" 12345678901234567890123456 http://192.168.1.30:8989 /downloads/```
 
 This will scan for all video files in /volume1/video/Downloads and for any it finds, trigger an import into Sonarr.
+
+## Extra Feature - filename transforms
+
+There is an optional 4th parameter, which is the path to a 'transforms' file. This is a text file whose contents will be of the form:
+
+```searchText|replaceText```
+
+For each file that is scanned by the tool, prior to running the Sonarr import, all transforms will be run on the filename. Regex is supported. So for example, I have the following:
+
+```
+Gardeners World 2019Gardeners World Series 52
+Beechgrove 2019|The Beechgrove Garden Series 41
+Series (\d+) - |S$1E
+```
+
+Which will convert:
+
+```Poldark Series 5 - 04.Episode 04.mp4```
+
+to 
+
+```Poldark S5E04.Episode 04.mp4```
+
+which will then be correctly imported and scanned by Sonarr. Another example, showing how multiple transforms are applied in-order:
+
+```Gardeners World 2019 - 24.Episode 24.mp4```
+
+to 
+
+```Gardeners World Series 52 - 24.Episode 24.mp4```
+
+to 
+
+```Gardeners World S52E24.Episode 24.mp4```
+
+This makes up for the irritating fact that Sonarr doesn't support user-defined series renames and relies on them being reported centrally and then a) accepted and b) updated in a timely fashion - neither of which are guaranteed.
+
