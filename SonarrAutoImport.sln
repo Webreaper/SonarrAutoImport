@@ -3,6 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarrAutoImport", "SonarrAutoImport\SonarrAutoImport.csproj", "{B30F7DED-BFF6-41A5-AD64-96074C08E9ED}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB0AF11B-560B-4F1D-A1C9-7AD9DC97CAFF}"
+	ProjectSection(SolutionItems) = preProject
+		publish.sh = publish.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
