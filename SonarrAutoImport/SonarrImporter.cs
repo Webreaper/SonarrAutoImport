@@ -44,44 +44,11 @@ namespace SonarrAuto
             Console.WriteLine("Error: " + fmt, args);
         }
 
-
-        private SonarrTransform[] LoadTransforms(string transformsPath)
-        {
-            List<SonarrTransform> transforms = new List<SonarrTransform>();
-
-            if (File.Exists(transformsPath))
-            {
-                Log("Loading transforms from {0}...", transformsPath);
-
-                string[] lines = File.ReadAllLines(transformsPath);
-
-                foreach (string line in lines)
-                {
-                    string[] parts = line.Split('|', StringSplitOptions.RemoveEmptyEntries);
-
-                    if (parts.Length == 2)
-                    {
-                        transforms.Add(new SonarrTransform { search = parts[0], replace = parts[1] });
-                    }
-                }
-            }
-            else
-                Log("No transforms file found: {0}...", transformsPath);
-
-            if (transforms.Any())
-            {
-                Log("Transforms Loaded:");
-                foreach (var x in transforms)
-                    Log($"  [{x.search}] => [{x.replace}]");
-            }
-            return transforms.ToArray();
-        }
-
-        private string TransformFileName(SonarrTransform[] transforms, string path, bool verbose)
+        private string TransformFileName(TransformSettings transforms, string path, bool verbose)
         {
             string fName = Path.GetFileName(path);
             string newfName = fName;
-            foreach (var transform in transforms)
+            foreach (var transform in transforms.transforms)
             {
                 newfName = Regex.Replace(newfName, transform.search, transform.replace);
                 if (verbose)
@@ -116,21 +83,18 @@ namespace SonarrAuto
             return fullPathName;
         }
 
-        public void ProcessVideos(string baseUrl, string APIKey, string folderToScan, string mapfolder, string transformsPath, bool dryRun, bool verbose)
+        public void ProcessVideos( Settings settings, bool dryRun, bool verbose)
         {
-            DirectoryInfo baseDir = new DirectoryInfo(folderToScan);
+            DirectoryInfo baseDir = new DirectoryInfo(settings.sonarr.downloadsFolder);
 
-            Log("Starting video processing for: {0}", folderToScan);
+            Log("Starting video processing for: {0}", baseDir);
             if (verbose)
             {
-                Log(" Base Url:   {0}", baseUrl);
-                Log(" API Key:    {0}", APIKey);
-                Log(" Transforms: {0}", transformsPath);
-                Log(" Mapping:    {0}", mapfolder);
+                Log(" Base Url:   {0}", settings.sonarr.url);
+                Log(" API Key:    {0}", settings.sonarr.apiKey);
+                Log(" Mapping:    {0}", settings.sonarr.mappingPath);
                 Log(" Dry Run:    {0}", dryRun);
             }
-
-            var transforms = LoadTransforms(transformsPath);
 
             var allFiles = baseDir.GetFiles("*.*", SearchOption.AllDirectories).ToList();
             var movieFiles = allFiles.Where(x => movieExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase))
@@ -145,18 +109,18 @@ namespace SonarrAuto
                 {
                     string videoFullPath = file.FullName;
 
-                    string newFileName = TransformFileName(transforms, videoFullPath, verbose);
+                    string newFileName = TransformFileName(settings.transforms, videoFullPath, verbose);
 
                     if (!dryRun)
                     {
                         videoFullPath = MoveFile(file.FullName, newFileName);
                     }
 
-                    string path = TranslatePath(folderToScan, videoFullPath, mapfolder);
+                    string path = TranslatePath(settings.sonarr.downloadsFolder, videoFullPath, settings.sonarr.mappingPath);
 
                     if (!dryRun)
                     {
-                        QuickImport(path, baseUrl, APIKey, verbose);
+                        QuickImport(path, settings.sonarr, verbose);
                     }
                     else
                         Log(" => {0}", path);
@@ -177,11 +141,11 @@ namespace SonarrAuto
             return Path.Combine(mapFolder, localPath);
         }
 
-        private void QuickImport(string remotePath, string baseUrl, string APIKey, bool verbose)
+        private void QuickImport(string remotePath, SonarrSettings sonarr, bool verbose)
         {
             try
             {
-                RestClient client = new RestClient(baseUrl);
+                RestClient client = new RestClient(sonarr.url);
                 var payload = new SonarrPayLoad { path = remotePath };
 
                 var request = new RestRequest(Method.POST);
@@ -190,7 +154,7 @@ namespace SonarrAuto
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(payload);
                 request.AddHeader("User-Agent", "Sonarr Auto-Import");
-                request.AddHeader("X-Api-Key", APIKey);
+                request.AddHeader("X-Api-Key", sonarr.apiKey);
 
                 var response = client.Execute(request);
                 Log(" - Executed Sonarr command for {0}", remotePath);

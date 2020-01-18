@@ -1,12 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarrAutoImport", "SonarrAutoImport\SonarrAutoImport.csproj", "{B30F7DED-BFF6-41A5-AD64-96074C08E9ED}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB0AF11B-560B-4F1D-A1C9-7AD9DC97CAFF}"
-	ProjectSection(SolutionItems) = preProject
-		publish.sh = publish.sh
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarrAutoImport", "SonarrAutoImport\SonarrAutoImport.csproj", "{28315B8A-CC85-421E-9C0D-C21ED96DC0AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,13 +9,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B30F7DED-BFF6-41A5-AD64-96074C08E9ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B30F7DED-BFF6-41A5-AD64-96074C08E9ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B30F7DED-BFF6-41A5-AD64-96074C08E9ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B30F7DED-BFF6-41A5-AD64-96074C08E9ED}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		Policies = $0
-		$0.VersionControlPolicy = $1
+		{28315B8A-CC85-421E-9C0D-C21ED96DC0AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28315B8A-CC85-421E-9C0D-C21ED96DC0AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28315B8A-CC85-421E-9C0D-C21ED96DC0AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28315B8A-CC85-421E-9C0D-C21ED96DC0AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
