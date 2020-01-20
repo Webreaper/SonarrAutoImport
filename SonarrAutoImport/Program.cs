@@ -16,7 +16,7 @@ namespace SonarrAuto
             public bool DryRun { get; set; }
 
             [Value(0, MetaName = "Settings Path", HelpText = "Path to settings JSON file (default = app dir)", Required = false)]
-            public string SettingsPath { get; set; }
+            public string SettingsPath { get; set; } = "Settings.json";
         };
 
         static void Main(string[] args)

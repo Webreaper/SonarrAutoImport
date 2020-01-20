@@ -25,6 +25,15 @@ namespace SonarrAuto
             public string downloadClientId = "SonarrAutoImporter";
         }
 
+        [DataContract(Name = "payload")]
+        public class RadarrPayLoad
+        {
+            public string path;
+            public string name = "DownloadedMoviesScan";
+            public string importMode = "Move";
+            public string downloadClientId = "SonarrAutoImporter";
+        }
+
         [DataContract(Name = "transform")]
         public class SonarrTransform
         {

@@ -8,25 +8,6 @@ using System.Text;
 namespace SonarrAuto
 {
     [DataContract]
-    public class EmailSettings
-    {
-        [DataMember]
-        public string smtpserver { get; set; }
-        [DataMember]
-        public int smtpport { get; set;  }
-        [DataMember]
-        public string username { get; set; }
-        [DataMember]
-        public string password { get; set; }
-        [DataMember]
-        public string toaddress { get; set; }
-        [DataMember]    
-        public string fromaddress { get; set; }
-        [DataMember]
-        public string toname { get; set; }
-    }
-
-    [DataContract]
     public class SonarrSettings
     {
         [DataMember]
