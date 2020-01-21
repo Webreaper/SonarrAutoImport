@@ -8,32 +8,6 @@ using System.Text;
 namespace SonarrAuto
 {
     [DataContract]
-    public class SonarrSettings
-    {
-        [DataMember]
-        public string url { get; set; }
-        [DataMember]
-        public string downloadsFolder { get; set; }
-        [DataMember]
-        public string mappingPath { get; set; }
-        [DataMember]
-        public string apiKey { get; set; }
-    }
-
-    [DataContract]
-    public class RadarrSettings
-    {
-        [DataMember]
-        public string url { get; set; }
-        [DataMember]
-        public string downloadsFolder { get; set; }
-        [DataMember]
-        public string mappingPath { get; set; }
-        [DataMember]
-        public string apiKey { get; set; }
-    }
-
-    [DataContract]
     public class Transform
     {
         [DataMember]
@@ -45,8 +19,16 @@ namespace SonarrAuto
     }
 
     [DataContract]
-    public class TransformSettings
+    public class ServiceSettings
     {
+        [DataMember]
+        public string url { get; set; }
+        [DataMember]
+        public string downloadsFolder { get; set; }
+        [DataMember]
+        public string mappingPath { get; set; }
+        [DataMember]
+        public string apiKey { get; set; }
         [DataMember]
         public List<Transform> transforms { get; set; }
     }
@@ -55,22 +37,28 @@ namespace SonarrAuto
     public class Settings
     {
         [DataMember]
-        public SonarrSettings sonarr { get; set; }
+        public ServiceSettings sonarr { get; set; }
         [DataMember]
-        public RadarrSettings radar { get; set; }
-        [DataMember]
-        public TransformSettings transforms { get; set; }
+        public ServiceSettings radarr { get; set; }
 
         [DataMember]
         public string logLocation { get; set; }
 
         public static Settings Read(string path)
         {
-            string json = File.ReadAllText(path);
+            if (File.Exists(path))
+            {
 
-            var settings = deserialiseJson<Settings>(json);
+                string json = File.ReadAllText(path);
 
-            return settings;
+                var settings = deserialiseJson<Settings>(json);
+
+                return settings;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private static T deserialiseJson<T>(string json)

@@ -1,6 +1,8 @@
 ﻿
+using System;
 using System.IO;
 using CommandLine;
+using SonarrAuto.Logging;
 
 namespace SonarrAuto
 {
@@ -21,18 +23,33 @@ namespace SonarrAuto
 
         static void Main(string[] args)
         {
+            LogHandler.InitLogs();
 
             Parser.Default.ParseArguments<Options>(args)
-                   .WithParsed<Options>(
-                        o => {
-
-                            var settings = Settings.Read(o.SettingsPath);
-
-                            var importer = new Importer();
-                                importer.ProcessVideos( settings, o.DryRun, o.Verbose);
-                             } );
+                   .WithParsed( o => { RunProcess(o); });
         }
 
+        private static void RunProcess(Options o)
+        {
+            var settings = Settings.Read(o.SettingsPath);
 
+            if (settings != null)
+            {
+                var importer = new Importer();
+
+                if (settings.sonarr != null)
+                {
+                    Logging.LogHandler.Log("Processing videos for Sonarr...");
+                    importer.ProcessService(settings.sonarr, o.DryRun, o.Verbose, "DownloadedEpisodesScan");
+                }
+                if (settings.radarr != null)
+                {
+                    Logging.LogHandler.Log("Processing videos for Radarr...");
+                    importer.ProcessService(settings.radarr, o.DryRun, o.Verbose, "DownloadedMoviesScan");
+                }
+            }
+            else
+                Logging.LogHandler.LogError($"Settings not found: {o.SettingsPath}");
+        }
     }
 }

@@ -17,19 +17,10 @@ namespace SonarrAuto
             };
 
         [DataContract(Name = "payload")]
-        public class SonarrPayLoad
+        public class PayLoad
         {
             public string path;
-            public string name = "DownloadedEpisodesScan";
-            public string importMode = "Move";
-            public string downloadClientId = "SonarrAutoImporter";
-        }
-
-        [DataContract(Name = "payload")]
-        public class RadarrPayLoad
-        {
-            public string path;
-            public string name = "DownloadedMoviesScan";
+            public string name; // API command name
             public string importMode = "Move";
             public string downloadClientId = "SonarrAutoImporter";
         }
@@ -43,29 +34,34 @@ namespace SonarrAuto
 
         private void Log(string fmt, params object[] args)
         {
-//            LogHandler.LogInstance().InfoFormat(fmt, args);
-            Console.WriteLine(fmt, args);
+            Logging.LogHandler.Log(fmt, args);
         }
 
         private void LogError(string fmt, params object[] args)
         {
-            //            LogHandler.LogError().InfoFormat(fmt, args);
-            Console.WriteLine("Error: " + fmt, args);
+            Logging.LogHandler.LogError(fmt, args);
         }
 
-        private string TransformFileName(TransformSettings transforms, string path, bool verbose)
+        private string TransformFileName(List<Transform> transforms, string path, bool verbose)
         {
             string fName = Path.GetFileName(path);
             string newfName = fName;
-            foreach (var transform in transforms.transforms)
-            {
-                newfName = Regex.Replace(newfName, transform.search, transform.replace);
-                if (verbose)
-                    Log(" - Transform {0} => {1}", fName, newfName);
-            }
 
-            if (string.Compare(fName, newfName, StringComparison.OrdinalIgnoreCase) != 0)
-                Log("Filename transformed: {0} => {1}", fName, newfName);
+            if (transforms != null && transforms.Any())
+            {
+                Log($" Running {transforms.Count()} transforms on {path}...");
+
+                foreach (var transform in transforms)
+                {
+                    newfName = Regex.Replace(newfName, transform.search, transform.replace);
+                    Logging.LogHandler.LogVerbose(" - Transform {0} => {1}", fName, newfName);
+                }
+
+                if (string.Compare(fName, newfName, StringComparison.OrdinalIgnoreCase) != 0)
+                    Log("Filename transformed: {0} => {1}", fName, newfName);
+            }
+            else
+                Log("No transforms configured.");
             return newfName;
         }
 
@@ -92,53 +88,58 @@ namespace SonarrAuto
             return fullPathName;
         }
 
-        public void ProcessVideos( Settings settings, bool dryRun, bool verbose)
+        public void ProcessService( ServiceSettings settings, bool dryRun, bool verbose, string apiCommand)
         {
-            DirectoryInfo baseDir = new DirectoryInfo(settings.sonarr.downloadsFolder);
+            DirectoryInfo baseDir = new DirectoryInfo(settings.downloadsFolder);
 
             Log("Starting video processing for: {0}", baseDir);
             if (verbose)
             {
-                Log(" Base Url:   {0}", settings.sonarr.url);
-                Log(" API Key:    {0}", settings.sonarr.apiKey);
-                Log(" Mapping:    {0}", settings.sonarr.mappingPath);
+                Log(" Base Url:   {0}", settings.url);
+                Log(" API Key:    {0}", settings.apiKey);
+                Log(" Mapping:    {0}", settings.mappingPath);
                 Log(" Dry Run:    {0}", dryRun);
             }
 
-            var allFiles = baseDir.GetFiles("*.*", SearchOption.AllDirectories).ToList();
-            var movieFiles = allFiles.Where(x => movieExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase))
-                                    .Where( x => ! x.Name.Contains( ".partial.", StringComparison.OrdinalIgnoreCase ) )
-                                    .ToList();
-
-            if (movieFiles.Any())
+            if (baseDir.Exists)
             {
-                Log("Processing {0} video files...", movieFiles.Count());
+                var allFiles = baseDir.GetFiles("*.*", SearchOption.AllDirectories).ToList();
+                var movieFiles = allFiles.Where(x => movieExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase))
+                                        .Where(x => !x.Name.Contains(".partial.", StringComparison.OrdinalIgnoreCase))
+                                        .ToList();
 
-                foreach (var file in movieFiles)
+                if (movieFiles.Any())
                 {
-                    string videoFullPath = file.FullName;
+                    Log("Processing {0} video files...", movieFiles.Count());
 
-                    string newFileName = TransformFileName(settings.transforms, videoFullPath, verbose);
-
-                    if (!dryRun)
+                    foreach (var file in movieFiles)
                     {
-                        videoFullPath = MoveFile(file.FullName, newFileName);
+                        string videoFullPath = file.FullName;
+
+                        string newFileName = TransformFileName(settings.transforms, videoFullPath, verbose);
+
+                        if (!dryRun)
+                        {
+                            videoFullPath = MoveFile(file.FullName, newFileName);
+                        }
+
+                        string path = TranslatePath(settings.downloadsFolder, videoFullPath, settings.mappingPath);
+
+                        if (!dryRun)
+                        {
+                            QuickImport(path, settings, verbose, apiCommand);
+                        }
+                        else
+                            Log(" => {0}", path);
                     }
 
-                    string path = TranslatePath(settings.sonarr.downloadsFolder, videoFullPath, settings.sonarr.mappingPath);
-
-                    if (!dryRun)
-                    {
-                        QuickImport(path, settings.sonarr, verbose);
-                    }
-                    else
-                        Log(" => {0}", path);
+                    Log("All processing complete.");
                 }
-
-                Log("All processing complete.");
+                else
+                    Log("No videos found. Nothing to do!");
             }
             else
-                Log("No videos found. Nothing to do!");
+                Log($"Folder {baseDir} was not found. Check configuration.");
         }
 
         private string TranslatePath(string baseFolder, string fullName, string mapFolder)
@@ -150,12 +151,12 @@ namespace SonarrAuto
             return Path.Combine(mapFolder, localPath);
         }
 
-        private void QuickImport(string remotePath, SonarrSettings sonarr, bool verbose)
+        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand)
         {
             try
             {
-                RestClient client = new RestClient(sonarr.url);
-                var payload = new SonarrPayLoad { path = remotePath };
+                RestClient client = new RestClient(service.url);
+                var payload = new PayLoad { path = remotePath, name = apiCommand };
 
                 var request = new RestRequest(Method.POST);
 
@@ -163,10 +164,10 @@ namespace SonarrAuto
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(payload);
                 request.AddHeader("User-Agent", "Sonarr Auto-Import");
-                request.AddHeader("X-Api-Key", sonarr.apiKey);
+                request.AddHeader("X-Api-Key", service.apiKey);
 
                 var response = client.Execute(request);
-                Log(" - Executed Sonarr command for {0}", remotePath);
+                Log(" - Executed Service command for {0}", remotePath);
                 if (verbose)
                     Log(response.Content);
             }
