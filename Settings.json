@@ -1,0 +1,44 @@
+{
+  "radarr": {
+    "url" : "http://192.168.1.30:7878",
+    "apiKey" : "87a3763f384241c2a33dfeea625681ca",
+    "mappingPath" : "/downloads/",
+    "downloadsFolder" : "/volume1/video/FilmDownloads"
+  },
+  "sonarr": {
+    "url" : "http://192.168.1.30:8989",
+    "apiKey" : "8727e07296064e369Xcb05d3c11b9531",
+    "mappingPath" : "/downloads/",
+    "downloadsFolder" : "/volume1/video/Downloads",
+    "transforms" : [
+      {
+        "search" : "Gardeners World 2019",
+        "replace" : "Gardeners World Series 52"
+      },
+      {
+        "search" : "Beechgrove 2019",
+        "replace" : "The Beechgrove Garden Series 41"
+      },
+      {
+        "search" : "Natural World 2019-2020",
+        "replace" : "Natural World Series 39"
+      },
+      {
+        "search" : "Natural World 2016-2017",
+        "replace" : "Natural World Series 36"
+      },
+      {
+        "search" : "Location.Location.Location.S31E",
+        "replace" : "Location.Location.Location.S33E"
+      },
+      {
+        "search" : "Autumnwatch 2019 - ",
+        "replace" : "Autumnwatch S2019E"
+      },
+      {
+        "search" : "Series (\\d+) - ",
+        "replace" : "S$1E"
+      }
+    ]
+  }
+}
