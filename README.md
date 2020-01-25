@@ -12,7 +12,6 @@ Usage has changed as of v1.1. The tool will look for a file Settings.json in the
 An example Settings file can be found [here](https://github.com/Webreaper/SonarrAutoImport/blob/master/Settings.json).
 
 There are also some optional params:
-* A 4th param specifying the mapped folder will replace the root folder with this remote folder. This replicates the remote folders setting in the Sonnar Download Client settings screen.
 * -v Enables verbose logging
 * -dry-run will scan the folder for video files, but not call the Sonarr API
 
