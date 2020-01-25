@@ -1,5 +1,5 @@
 # SonarrAutoImport
-Scan video files and submit them to import into Sonarr, Drone-factory style.
+Scan video files and submit them to import into Sonarr & Radarr, Drone-factory style.
 
 ## Why?
 Sonarr's 'Quick Import' is supposed to auto-import files downloaded via other channels that the Download Clients configured in settings. However, it only works if you pass it the full path/folder to a single episode. 
