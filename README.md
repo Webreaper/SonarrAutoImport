@@ -15,12 +15,6 @@ There are also some optional params:
 * -v Enables verbose logging
 * -dry-run will scan the folder for video files, but not call the Sonarr API
 
-## Example:
-
-```SonarrAutoImport "/volume1/video/Downloads" 12345678901234567890123456 http://192.168.1.30:8989 /downloads/```
-
-This will scan for all video files in /volume1/video/Downloads and for any it finds, trigger an import into Sonarr.
-
 ## Sonarr Episode Filename transforms
 
 For each file that is scanned by the tool for import into Sonarr, prior to running the Sonarr import, all transforms will be run on the filename. Regex is supported. So for example, I have the following:
