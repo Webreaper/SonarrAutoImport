@@ -7,10 +7,9 @@ I run get_iplayer as a BBC PVR, and want episodes to be auto-imported by Sonarr 
 So this utility scans the folder for video files, and for each one found, calls the API to trigger an automatic import. It won't work for all files, since some may be misnamed, but it will automate some of them.
 
 ## Usage:
-The tool takes 3 required parameters:
-* Source directory to scan for video files
-* Sonarr API key
-* Sonarr base URL (/api will be added)
+Usage has changed as of v1.1. The tool will look for a file Settings.json in the working folder or same folder as the executable. The Json file includes the sonarr and radarr config (either is optional) and the transform rules for Sonarr.
+
+An example Settings file can be found [here](https://github.com/Webreaper/SonarrAutoImport/blob/master/Settings.json).
 
 There are also some optional params:
 * A 4th param specifying the mapped folder will replace the root folder with this remote folder. This replicates the remote folders setting in the Sonnar Download Client settings screen.
@@ -23,18 +22,13 @@ There are also some optional params:
 
 This will scan for all video files in /volume1/video/Downloads and for any it finds, trigger an import into Sonarr.
 
-## Extra Feature - filename transforms
+## Sonarr Episode Filename transforms
 
-There is an optional 4th parameter, which is the path to a 'transforms' file. This is a text file whose contents will be of the form:
-
-```searchText|replaceText```
-
-For each file that is scanned by the tool, prior to running the Sonarr import, all transforms will be run on the filename. Regex is supported. So for example, I have the following:
+For each file that is scanned by the tool for import into Sonarr, prior to running the Sonarr import, all transforms will be run on the filename. Regex is supported. So for example, I have the following:
 
 ```
-Gardeners World 2019Gardeners World Series 52
-Beechgrove 2019|The Beechgrove Garden Series 41
-Series (\d+) - |S$1E
+"search" : "Series (\\d+) - ",
+"replace" : "S$1E"
 ```
 
 Which will convert:
@@ -46,6 +40,12 @@ to
 ```Poldark S5E04.Episode 04.mp4```
 
 which will then be correctly imported and scanned by Sonarr. Another example, showing how multiple transforms are applied in-order:
+
+```
+"search" : "Gardeners World 2019",
+"replace" : "Gardeners World Series 52"
+```
+which, combined with the first tranfrom above, will convert:
 
 ```Gardeners World 2019 - 24.Episode 24.mp4```
 
