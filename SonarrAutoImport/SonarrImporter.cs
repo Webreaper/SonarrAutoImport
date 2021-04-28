@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using RestSharp;
+using System;
+using System.Threading;
 
 namespace SonarrAuto
 {
@@ -88,7 +90,7 @@ namespace SonarrAuto
             return fullPathName;
         }
 
-        public void ProcessService( ServiceSettings settings, bool dryRun, bool verbose, string apiCommand)
+        public void ProcessService( ServiceSettings settings, bool dryRun, bool verbose, string apiCommand, bool import_mymode, int timeout)
         {
             DirectoryInfo baseDir = new DirectoryInfo(settings.downloadsFolder);
 
@@ -117,7 +119,12 @@ namespace SonarrAuto
                         string videoFullPath = file.FullName;
 
                         string newFileName = TransformFileName(settings.transforms, videoFullPath, verbose);
-
+                        
+                        if (!dryRun)
+                        {
+                            videoFullPath = MoveFile(file.FullName, newFileName);
+                        }
+                        
                         if (!dryRun)
                         {
                             videoFullPath = MoveFile(file.FullName, newFileName);
@@ -127,7 +134,7 @@ namespace SonarrAuto
 
                         if (!dryRun)
                         {
-                            QuickImport(path, settings, verbose, apiCommand);
+                            QuickImport(path, settings, verbose, apiCommand,import_mymode,timeout);
                         }
                         else
                             Log(" => {0}", path);
@@ -151,12 +158,22 @@ namespace SonarrAuto
             return Path.Combine(mapFolder, localPath);
         }
 
-        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand)
+        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand , bool mymode , int timeout)
         {
+            Log($"Sleeping some seconds...");
+            Thread.Sleep(timeout);
             try
             {
                 RestClient client = new RestClient(service.url);
-                var payload = new PayLoad { path = remotePath, name = apiCommand };
+//                 
+                    var payload = new PayLoad { path = remotePath, name = apiCommand};
+                    if (mymode) {
+                        payload = new PayLoad { path = remotePath, name = apiCommand , importMode = "Copy"};
+                    }
+//                 }else {
+//                     var payload = new PayLoad { path = remotePath, name = apiCommand , importMode = "Copy"};
+                    
+//                 }
 
                 var request = new RestRequest(Method.POST);
 
