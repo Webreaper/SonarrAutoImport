@@ -14,6 +14,7 @@
     "downloadsFolder" : "/volume1/video/Downloads",
     "importMode" : "Copy",
     "timeoutSecs" : "5",
+    "trimFolders" : "true",
     "transforms" : [
       {
         "search" : "Gardeners World 2019",
