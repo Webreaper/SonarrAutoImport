@@ -31,6 +31,12 @@ namespace SonarrAuto
         public string apiKey { get; set; }
         [DataMember]
         public List<Transform> transforms { get; set; }
+        [DataMember]
+        public string importMode { get; set; } = "Move";
+        [DataMember]
+        public int timeoutSecs { get; set; }
+        [DataMember]
+        public bool trimFolders { get; set; }
     }
 
     [DataContract]

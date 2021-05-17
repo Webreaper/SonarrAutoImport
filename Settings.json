@@ -1,15 +1,19 @@
 {
   "radarr": {
     "url" : "http://192.168.1.30:7878",
-    "apiKey" : "87a3763f384241c2a33dfeea625681ca",
+    "apiKey" : "87a3763f384241c2a33dfeea625681c5",
     "mappingPath" : "/downloads/",
-    "downloadsFolder" : "/volume1/video/FilmDownloads"
+    "downloadsFolder" : "/volume1/video/FilmDownloads",
+    "importMode" : "Move",
+    "timeoutSecs" : "5"
   },
   "sonarr": {
     "url" : "http://192.168.1.30:8989",
-    "apiKey" : "8727e07296064e369Xcb05d3c11b9531",
+    "apiKey" : "8727e07296064e369Xcb05d3c11b9532",
     "mappingPath" : "/downloads/",
     "downloadsFolder" : "/volume1/video/Downloads",
+    "importMode" : "Copy",
+    "timeoutSecs" : "5",
     "transforms" : [
       {
         "search" : "Gardeners World 2019",

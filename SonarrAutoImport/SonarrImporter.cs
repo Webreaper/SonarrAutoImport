@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using RestSharp;
-using System;
 using System.Threading;
 
 namespace SonarrAuto
@@ -90,9 +89,15 @@ namespace SonarrAuto
             return fullPathName;
         }
 
-        public void ProcessService( ServiceSettings settings, bool dryRun, bool verbose, string apiCommand, bool import_mymode, int timeout)
+        public void ProcessService( ServiceSettings settings, bool dryRun, bool verbose, string apiCommand)
         {
             DirectoryInfo baseDir = new DirectoryInfo(settings.downloadsFolder);
+
+            if (settings.importMode != "Copy" && settings.importMode != "Move")
+            {
+                Log($"Invalid importMode '{settings.importMode}' in settings. Defaulting to 'Move'");
+                settings.importMode = "Move";
+            }
 
             Log("Starting video processing for: {0}", baseDir);
             if (verbose)
@@ -100,6 +105,8 @@ namespace SonarrAuto
                 Log(" Base Url:   {0}", settings.url);
                 Log(" API Key:    {0}", settings.apiKey);
                 Log(" Mapping:    {0}", settings.mappingPath);
+                Log(" Timeout:    {0}", settings.timeoutSecs);
+                Log(" CopyMode:   {0}", settings.importMode);
                 Log(" Dry Run:    {0}", dryRun);
             }
 
@@ -119,12 +126,7 @@ namespace SonarrAuto
                         string videoFullPath = file.FullName;
 
                         string newFileName = TransformFileName(settings.transforms, videoFullPath, verbose);
-                        
-                        if (!dryRun)
-                        {
-                            videoFullPath = MoveFile(file.FullName, newFileName);
-                        }
-                        
+
                         if (!dryRun)
                         {
                             videoFullPath = MoveFile(file.FullName, newFileName);
@@ -134,19 +136,72 @@ namespace SonarrAuto
 
                         if (!dryRun)
                         {
-                            QuickImport(path, settings, verbose, apiCommand,import_mymode,timeout);
+                            QuickImport(path, settings, verbose, apiCommand);
                         }
                         else
                             Log(" => {0}", path);
+
+                        if (settings.timeoutSecs != 0)
+                        {
+                            Log( $"Sleeping for {settings.timeoutSecs} seconds...");
+                            Thread.Sleep(settings.timeoutSecs * 1000);
+                        }
                     }
 
                     Log("All processing complete.");
                 }
                 else
                     Log("No videos found. Nothing to do!");
+
+                if (settings.trimFolders)
+                {
+                    Log($"Trimming empty folders in {baseDir.FullName}");
+                    TrimEmptyFolders(baseDir);
+                }
             }
             else
                 Log($"Folder {baseDir} was not found. Check configuration.");
+        }
+
+        private void TrimEmptyFolders(DirectoryInfo baseDir)
+        {
+            if ((baseDir.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden)
+                return;
+
+            if (baseDir.Name.StartsWith(".") || baseDir.Name.StartsWith("@"))
+                return;
+
+            var allFolders = baseDir.GetDirectories("*.*", SearchOption.AllDirectories);
+
+            foreach (var folder in allFolders)
+            {
+                try
+                {
+                    TrimEmptyFolders(folder);
+
+                    var nonMovieFiles = folder.GetFiles()
+                                           .Where(x => !movieExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase)
+                                                       && !x.Name.StartsWith( ".")
+                                                       && (x.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
+                                           .ToList();
+
+                    nonMovieFiles.ForEach(x =>
+                    {
+                        Log($"  Deleting non-video file: {x.FullName}");
+                        x.Delete();
+                    });
+
+                    if (!folder.GetFiles().Any() && !folder.GetDirectories().Any() )
+                    {
+                        Log($"Removing empty folder: {folder.FullName}");
+                        folder.Delete();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"Unexpected exception during folder trim: {ex.Message}");
+                }
+            }
         }
 
         private string TranslatePath(string baseFolder, string fullName, string mapFolder)
@@ -158,22 +213,12 @@ namespace SonarrAuto
             return Path.Combine(mapFolder, localPath);
         }
 
-        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand , bool mymode , int timeout)
+        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand)
         {
-            Log($"Sleeping some seconds...");
-            Thread.Sleep(timeout);
             try
             {
                 RestClient client = new RestClient(service.url);
-//                 
-                    var payload = new PayLoad { path = remotePath, name = apiCommand};
-                    if (mymode) {
-                        payload = new PayLoad { path = remotePath, name = apiCommand , importMode = "Copy"};
-                    }
-//                 }else {
-//                     var payload = new PayLoad { path = remotePath, name = apiCommand , importMode = "Copy"};
-                    
-//                 }
+                var payload = new PayLoad { path = remotePath, name = apiCommand, importMode = service.importMode };
 
                 var request = new RestRequest(Method.POST);
 
