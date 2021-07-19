@@ -89,6 +89,25 @@ namespace SonarrAuto
             return fullPathName;
         }
 
+        /// <summary>
+        /// Skip .partial files, and also any file where the last write time is any time
+        /// the last 5 mins.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private bool IsPartialDownload( FileInfo file )
+        {
+            if (file.Name.Contains(".partial.", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            var age = DateTime.UtcNow - file.LastWriteTimeUtc;
+
+            if (Math.Abs(age.TotalMinutes) < 5)
+                return true;
+
+            return false;
+        }
+
         public void ProcessService( ServiceSettings settings, bool dryRun, bool verbose, string apiCommand)
         {
             DirectoryInfo baseDir = new DirectoryInfo(settings.downloadsFolder);
@@ -114,7 +133,7 @@ namespace SonarrAuto
             {
                 var allFiles = baseDir.GetFiles("*.*", SearchOption.AllDirectories).ToList();
                 var movieFiles = allFiles.Where(x => movieExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase))
-                                        .Where(x => !x.Name.Contains(".partial.", StringComparison.OrdinalIgnoreCase))
+                                        .Where(x => !IsPartialDownload( x ) )
                                         .ToList();
 
                 if (movieFiles.Any())
