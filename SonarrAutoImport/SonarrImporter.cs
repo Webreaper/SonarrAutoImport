@@ -54,7 +54,7 @@ namespace SonarrAuto
 
                 foreach (var transform in transforms)
                 {
-                    newfName = Regex.Replace(newfName, transform.search, transform.replace);
+                    newfName = Regex.Replace(newfName, transform.search, transform.replace, RegexOptions.IgnoreCase);
                     Logging.LogHandler.LogVerbose(" - Transform {0} => {1}", fName, newfName);
                 }
 
