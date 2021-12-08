@@ -290,19 +290,19 @@ namespace SonarrAuto
                 {
                     TrimEmptyFolders(folder, extensions);
 
-                    var nonMovieFiles = folder.GetFiles()
+                    var unwantedFiles = folder.GetFiles()
                                            .Where(x => !extensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase)
                                                        && !x.Name.StartsWith( ".")
                                                        && (x.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                                            .ToList();
 
-                    nonMovieFiles.ForEach(x =>
+                    unwantedFiles.ForEach(x =>
                     {
                         Log($"  Deleting non-video file: {x.FullName}");
                         x.Delete();
                     });
 
-                    if (!folder.GetFiles().Any() && !folder.GetDirectories().Any() )
+                    if (folder.Exists && !folder.GetFiles().Any() && !folder.GetDirectories().Any() )
                     {
                         Log($"Removing empty folder: {folder.FullName}");
                         folder.Delete();
