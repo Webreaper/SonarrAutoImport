@@ -37,6 +37,11 @@ namespace SonarrAuto
             {
                 var importer = new Importer();
 
+                if (settings.lidarr != null)
+                {
+                    LogHandler.Log("Processing music for Lidarr...");
+                    importer.ProcessLidarr(settings.lidarr, o.DryRun, o.Verbose, "DownloadedAlbumsScan");
+                }
                 if (settings.sonarr != null)
                 {
                     LogHandler.Log("Processing videos for Sonarr...");

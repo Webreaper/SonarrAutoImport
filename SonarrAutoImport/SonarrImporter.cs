@@ -17,6 +17,17 @@ namespace SonarrAuto
                 ".mpg", ".mp2", ".mpeg", ".mpe", ".mpv"
             };
 
+        private static string[] musicExtensions = {
+                ".mp3", ".flac", ".opus", ".m4a", ".wav", ".wma"
+            };
+
+        private static string[] discNames =
+        {
+            "cd1", "cd2", "cd3", "cd4", "cd5",
+            "disk1", "disk2", "disk3", "disk4", "disk5",
+            "disc1", "disc2", "disc3", "disc4", "disc5"
+        };
+
         [DataContract(Name = "payload")]
         public class PayLoad
         {
@@ -175,14 +186,95 @@ namespace SonarrAuto
                 if (settings.trimFolders)
                 {
                     Log($"Trimming empty folders in {baseDir.FullName}");
-                    TrimEmptyFolders(baseDir);
+                    TrimEmptyFolders(baseDir, movieExtensions);
                 }
             }
             else
                 Log($"Folder {baseDir} was not found. Check configuration.");
         }
 
-        private void TrimEmptyFolders(DirectoryInfo baseDir)
+        private string GetAlbumFolder( DirectoryInfo dir )
+        {
+            string albumFolder = dir.FullName;
+
+            if( discNames.Any( x => dir.Name.StartsWith( x, StringComparison.OrdinalIgnoreCase ) ) )
+            {
+                albumFolder = dir.Parent.FullName;
+            }
+
+            return albumFolder;
+        }
+
+
+        public void ProcessLidarr(ServiceSettings settings, bool dryRun, bool verbose, string apiCommand)
+        {
+            DirectoryInfo baseDir = new DirectoryInfo(settings.downloadsFolder);
+
+            if (settings.importMode != "Copy" && settings.importMode != "Move")
+            {
+                Log($"Invalid importMode '{settings.importMode}' in settings. Defaulting to 'Move'");
+                settings.importMode = "Move";
+            }
+
+            Log("Starting audio processing for: {0}", baseDir);
+            if (verbose)
+            {
+                Log(" Base Url:   {0}", settings.url);
+                Log(" API Key:    {0}", settings.apiKey);
+                Log(" Mapping:    {0}", settings.mappingPath);
+                Log(" Timeout:    {0}", settings.timeoutSecs);
+                Log(" CopyMode:   {0}", settings.importMode);
+                Log(" Dry Run:    {0}", dryRun);
+            }
+
+            if (baseDir.Exists)
+            {
+                var allFiles = baseDir.GetFiles("*.*", SearchOption.AllDirectories).ToList();
+
+                var albumFolders = allFiles.Where(x => musicExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase))
+                                        .Where(x => !IsPartialDownload(x))
+                                        .Select(x => GetAlbumFolder(x.Directory))
+                                        .Distinct()
+                                        .ToList();
+
+                if (albumFolders.Any())
+                {
+                    Log("Processing {0} album folders...", albumFolders.Count());
+
+                    foreach (var folder in albumFolders)
+                    {
+                        string path = TranslatePath(settings.downloadsFolder, folder, settings.mappingPath);
+
+                        if (!dryRun)
+                        {
+                            QuickImport(path, settings, verbose, apiCommand, true);
+                        }
+                        else
+                            Log(" => {0}", path);
+
+                        if (settings.timeoutSecs != 0)
+                        {
+                            Log($"Sleeping for {settings.timeoutSecs} seconds...");
+                            Thread.Sleep(settings.timeoutSecs * 1000);
+                        }
+                    }
+
+                    Log("All processing complete.");
+                }
+                else
+                    Log("No albums found. Nothing to do!");
+
+                if (settings.trimFolders)
+                {
+                    Log($"Trimming empty folders in {baseDir.FullName}");
+                    TrimEmptyFolders(baseDir, musicExtensions);
+                }
+            }
+            else
+                Log($"Folder {baseDir} was not found. Check configuration.");
+        }
+
+        private void TrimEmptyFolders(DirectoryInfo baseDir, string[] extensions)
         {
             if ((baseDir.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden)
                 return;
@@ -196,10 +288,10 @@ namespace SonarrAuto
             {
                 try
                 {
-                    TrimEmptyFolders(folder);
+                    TrimEmptyFolders(folder, extensions);
 
                     var nonMovieFiles = folder.GetFiles()
-                                           .Where(x => !movieExtensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase)
+                                           .Where(x => !extensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase)
                                                        && !x.Name.StartsWith( ".")
                                                        && (x.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                                            .ToList();
@@ -232,7 +324,7 @@ namespace SonarrAuto
             return Path.Combine(mapFolder, localPath);
         }
 
-        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand)
+        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand, bool isLidarr = false)
         {
             try
             {
@@ -241,7 +333,7 @@ namespace SonarrAuto
 
                 var request = new RestRequest(Method.POST);
 
-                request.Resource = "api/command";
+                request.Resource = isLidarr ? "api/v1/command" : "api/command";
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(payload);
                 request.AddHeader("User-Agent", "Sonarr Auto-Import");

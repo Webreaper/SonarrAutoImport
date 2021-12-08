@@ -46,6 +46,8 @@ namespace SonarrAuto
         public ServiceSettings sonarr { get; set; }
         [DataMember]
         public ServiceSettings radarr { get; set; }
+        [DataMember]
+        public ServiceSettings lidarr { get; set; }
 
         [DataMember]
         public string logLocation { get; set; }
