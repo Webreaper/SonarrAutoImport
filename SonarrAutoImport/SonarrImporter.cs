@@ -333,7 +333,7 @@ namespace SonarrAuto
 
                 var request = new RestRequest(Method.POST);
 
-                request.Resource = isLidarr ? "api/v1/command" : "api/command";
+                request.Resource = isLidarr ? "api/v1/command" : "api/v3/command";
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(payload);
                 request.AddHeader("User-Agent", "Sonarr Auto-Import");
