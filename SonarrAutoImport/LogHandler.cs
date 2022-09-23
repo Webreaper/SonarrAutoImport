@@ -31,7 +31,7 @@ namespace SonarrAuto.Logging
                                fileSizeLimitBytes: 104857600)
                 .CreateLogger();
 
-            logger.Information("=== QbtCleanup Log Started ===");
+            logger.Information("=== Sonarr Auto Import Log Started ===");
             logger.Information("LogLevel: {0}", logLevel.MinimumLevel);
 
             return logger;
