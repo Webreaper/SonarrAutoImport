@@ -12,8 +12,8 @@ Usage has changed as of v1.1. The tool will look for a file Settings.json in the
 An example Settings file can be found [here](https://github.com/Webreaper/SonarrAutoImport/blob/master/Settings.json).
 
 There are also some optional params:
-* -v Enables verbose logging
-* -dry-run will scan the folder for video files, but not call the Sonarr API
+* -v Enables verbose logging (--v for windows users)
+* -dry-run will scan the folder for video files, but not call the Sonarr API (--dry-run for windows users)
 
 ## Sonarr Episode Filename transforms
 
@@ -52,3 +52,8 @@ to
 
 This makes up for the irritating fact that Sonarr doesn't support user-defined series renames and relies on them being reported centrally and then a) accepted and b) updated in a timely fashion - neither of which are guaranteed.
 
+### **downloadsFolder vs. mappingPath**
+- **downloadsFolder**: This is the path to the media files that need to be processed from the perspective of the SonarrAutoImport script.
+- **mappingPath**: This is the path to the media files from the perspective of Sonarr.
+
+These two paths should point to the same location. However, in some environments (such as Docker), the same destination might require different paths. Make sure both paths are correctly configured based on the context of your setup.
