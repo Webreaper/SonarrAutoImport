@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build win-x64
+      run: dotnet publish SonarrAutoImport.sln -c Release --runtime win-x64 --self-contained -o SonarrAutoImport-win-x64 /p:AssemblyVersion=1.0.${{ github.run_number }}
+      
+    - name: Build linux-x64
+      run: dotnet publish SonarrAutoImport.sln -c Release --runtime linux-x64 --self-contained -o SonarrAutoImport-linux-x64 /p:AssemblyVersion=1.0.${{ github.run_number }}
+      
+    - name: Build osx-x64
+      run: dotnet publish SonarrAutoImport.sln -c Release --runtime osx-x64 --self-contained -o SonarrAutoImport-osx-x64 /p:AssemblyVersion=1.0.${{ github.run_number }}
+
+    - name: Pack .NET Core tool
+      run: dotnet pack -c Release SonarrAutoImport.sln /p:Version=1.0.${{ github.run_number }}
+
+    - name: Pack executables
+      shell: bash
+      run: |
+        7z a -tzip "./artifacts/SonarrAutoImport-win-x64.zip" "./SonarrAutoImport-win-x64/*"
+        tar czvf "./artifacts/SonarrAutoImport-linux-x64.tar.gz" "SonarrAutoImport-linux-x64"
+        tar czvf "./artifacts/SonarrAutoImport-osx-x64.tar.gz" "SonarrAutoImport-osx-x64"
+        rm -r "SonarrAutoImport-win-x64"
+        rm -r "SonarrAutoImport-linux-x64"
+        rm -r "SonarrAutoImport-osx-x64"
+    
+    - name: Create the Release
+      id: create_release
+      if: ${{ github.event_name == 'push' }}
+      uses: actions/create-release@v1.1.3
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: 1.0.${{ github.run_number }}
+        release_name: Release 1.0.${{ github.run_number }}
+        draft: false
+        
+    - name: Upload SonarrAutoImport-win-x64.zip
+      if: ${{ github.event_name == 'push' }}
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/SonarrAutoImport-win-x64.zip
+        asset_name: SonarrAutoImport-win-x64.zip
+        asset_content_type: application/zip
+
+    - name: Upload SonarrAutoImport-linux-x64.zip
+      if: ${{ github.event_name == 'push' }}
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/SonarrAutoImport-linux-x64.tar.gz
+        asset_name: SonarrAutoImport-linux-x64.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload SonarrAutoImport-osx-x64.zip
+      if: ${{ github.event_name == 'push' }}
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/SonarrAutoImport-osx-x64.tar.gz
+        asset_name: SonarrAutoImport-osx-x64.tar.gz
+        asset_content_type: application/gzip
