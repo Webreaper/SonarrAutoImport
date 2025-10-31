@@ -151,6 +151,8 @@ namespace SonarrAuto
                 {
                     Log("Processing {0} video files...", movieFiles.Count());
 
+                    bool success = true;
+
                     foreach (var file in movieFiles)
                     {
                         string videoFullPath = file.FullName;
@@ -166,7 +168,8 @@ namespace SonarrAuto
 
                         if (!dryRun)
                         {
-                            QuickImport(path, settings, verbose, apiCommand);
+                            if (!QuickImport(path, settings, verbose, apiCommand))
+                                success = false;
                         }
                         else
                             Log(" => {0}", path);
@@ -178,7 +181,10 @@ namespace SonarrAuto
                         }
                     }
 
-                    Log("All processing complete.");
+                    if( success )
+                        Log("All processing completed successfully.");
+                    else
+                     Log("Processing completed with errors.");
                 }
                 else
                     Log("No videos found. Nothing to do!");
@@ -324,7 +330,7 @@ namespace SonarrAuto
             return Path.Combine(mapFolder, localPath);
         }
 
-        private void QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand, bool isLidarr = false)
+        private bool QuickImport(string remotePath, ServiceSettings service, bool verbose, string apiCommand, bool isLidarr = false)
         {
             try
             {
@@ -341,13 +347,23 @@ namespace SonarrAuto
 
                 var response = client.Execute(request);
                 Log(" - Executed Service command for {0}", remotePath);
-                if (verbose)
+
+                if (!response.IsSuccessful)
+                    LogError($"Request failed: status {response.StatusCode}");
+
+                if (!response.IsSuccessful || verbose)
+                {
                     Log(response.Content);
+                }
+
+                return response.IsSuccessful;
             }
             catch (Exception e)
             {
                 LogError("Exception: {0}", e);
             }
+
+            return false;
         }
     }
 }
