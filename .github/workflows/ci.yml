@@ -23,16 +23,13 @@ jobs:
       run: dotnet restore
 
     - name: Build win-x64
-      run: dotnet publish SonarrAutoImport.sln -c Release --runtime win-x64 --self-contained -o SonarrAutoImport-win-x64 /p:AssemblyVersion=1.0.${{ github.run_number }}
+      run: dotnet publish SonarrAutoImport.sln -c Release --runtime win-x64 --self-contained -o SonarrAutoImport-win-x64 /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyVersion=1.0.${{ github.run_number }}
       
     - name: Build linux-x64
-      run: dotnet publish SonarrAutoImport.sln -c Release --runtime linux-x64 --self-contained -o SonarrAutoImport-linux-x64 /p:AssemblyVersion=1.0.${{ github.run_number }}
+      run: dotnet publish SonarrAutoImport.sln -c Release --runtime linux-x64 --self-contained -o SonarrAutoImport-linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyVersion=1.0.${{ github.run_number }}
       
     - name: Build osx-x64
-      run: dotnet publish SonarrAutoImport.sln -c Release --runtime osx-x64 --self-contained -o SonarrAutoImport-osx-x64 /p:AssemblyVersion=1.0.${{ github.run_number }}
-
-    - name: Pack .NET Core tool
-      run: dotnet pack -c Release SonarrAutoImport.sln /p:Version=1.0.${{ github.run_number }}
+      run: dotnet publish SonarrAutoImport.sln -c Release --runtime osx-x64 --self-contained -o SonarrAutoImport-osx-x64 /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyVersion=1.0.${{ github.run_number }}
 
     - name: Pack executables
       shell: bash
