@@ -28,13 +28,13 @@ jobs:
     - name: Build linux-x64
       run: dotnet publish SonarrAutoImport.sln -c Release --runtime linux-x64 --self-contained -o SonarrAutoImport-linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyVersion=1.0.${{ github.run_number }}
 
-    - name: Build linux-x64-musl
+    - name: Build linux-musl-x64
       run: dotnet publish SonarrAutoImport.sln -c Release --runtime linux-musl-x64 --self-contained -o SonarrAutoImport-linux-musl-x64 /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyVersion=1.0.${{ github.run_number }}
 
     - name: Build linux-arm64
       run: dotnet publish SonarrAutoImport.sln -c Release --runtime linux-arm64 --self-contained -o SonarrAutoImport-linux-arm64 /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyVersion=1.0.${{ github.run_number }}
 
-    - name: Build linux-arm64-musl
+    - name: Build linux-musl-arm64
       run: dotnet publish SonarrAutoImport.sln -c Release --runtime linux-musl-arm64 --self-contained -o SonarrAutoImport-linux-musl-arm64 /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyVersion=1.0.${{ github.run_number }}
 
     - name: Build osx-x64
