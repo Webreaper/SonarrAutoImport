@@ -47,7 +47,7 @@ jobs:
         tar czvf "./artifacts/SonarrAutoImport-linux-x64.tar.gz" "SonarrAutoImport-linux-x64"
         tar czvf "./artifacts/SonarrAutoImport-linux-musl-x64.tar.gz" "SonarrAutoImport-linux-musl-x64"
         tar czvf "./artifacts/SonarrAutoImport-linux-arm64.tar.gz" "SonarrAutoImport-linux-arm64"
-        tar czvf "./artifacts/SonarrAutoImport-linux-musl-arm64.tar.gz" "SonarrAutoImport-linux-musl-armx64"
+        tar czvf "./artifacts/SonarrAutoImport-linux-musl-arm64.tar.gz" "SonarrAutoImport-linux-musl-arm64"
         tar czvf "./artifacts/SonarrAutoImport-osx-x64.tar.gz" "SonarrAutoImport-osx-x64"
         rm -r "SonarrAutoImport-win-x64"
         rm -r "SonarrAutoImport-linux-x64"
